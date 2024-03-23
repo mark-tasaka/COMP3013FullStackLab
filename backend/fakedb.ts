@@ -31,6 +31,24 @@ export const posts = [
   },
 ];
 
+
+export const addPost = (post: any, userIdFromToken: any) => {
+  //  Issues:
+  //  *     The request body contains the title, category, and image,
+  //  *     but the addPost function needs to add a unique id
+  //  *     and the id of the currently logged in user to the post.
+  const newId = Math.max(...posts.map((post) => post.id)) + 1;
+  const newPost = {
+    ...post,
+    id: newId,
+    userId: userIdFromToken,
+  };
+
+  posts.push(newPost);
+  console.log(newPost);
+};
+
+/*
 export const addPost = (post: any) => {
   //  Issues:
   //  *     The request body contains the title, category, and image,
@@ -39,7 +57,7 @@ export const addPost = (post: any) => {
   post.id = 3;
   post.userId = 2;
   posts.push(post);
-};
+};*/
 
 export const verifyUser = (email: string, password: string) => {
   const user = users.find((user) => {
