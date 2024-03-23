@@ -1,13 +1,38 @@
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, useLoaderData, useParams } from "react-router-dom";
 import DOMAIN from "../../services/endpoint";
 import axios from "axios";
 import { Button, Container, Avatar, Text, Group } from "@mantine/core";
 //import { Avatar, Text, Group } from '@mantine/core';
 //import { IconPhoneCall, IconAt } from '@tabler/icons-react';
 import classes from './Post.module.css';
+import useBoundStore from '../../store/Store'; // Adjust the import path as necessary
+import { useEffect, useState } from "react";
 
 export function PostDetailsPage() {
  const postData = useLoaderData();
+   // Access user and authentication status
+
+  const [post, setPost] = useState(null); // Initialize state to null indicating no data initially
+  const { id } = useParams(); // id of the post
+   const user = useBoundStore(state => state.user );
+
+   useEffect(() => {
+     const fetchPostDetails = async () => {
+       try {
+         const response = await axios.get(`${DOMAIN}/api/posts/${id}`);
+         console.log("Fetched post details:", response.data); // Log fetched post
+         setPost(response.data); // Update the state with the fetched data
+       } catch (error) {
+         console.error("Error fetching post details:", error);
+       }
+     };
+ 
+     fetchPostDetails();
+   }, [id]);
+ 
+   if (!post) {
+     return <div>Loading post...</div>; // Show a loading message or spinner instead
+   }
   return (
     <>
       <Container className={classes.container}>
@@ -38,9 +63,13 @@ export function PostDetailsPage() {
           </Text>
 
           
-      <Button mt={50}>
-          <Link to="/update">Update</Link>
-        </Button>
+          {user && user.id === post.userId && (
+          <Button 
+            onClick={() => navigate(`/posts/edit/${post.id}`)}
+          >
+            Edit
+          </Button>
+        )}
 
       </div>
       
@@ -58,8 +87,27 @@ export function PostDetailsPage() {
 }
 
 export const postDetailsLoader = async ({ params }) => {
+  const { id } = params;
+  try {
+    const response = await fetch(`${DOMAIN}/api/posts/${id}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch post details");
+    }
+
+    const postDetails = await response.json();
+    return postDetails;
+  } catch (error) {
+    console.error("Error fetching post details:", error);
+    return null;
+  }
+};
+
+/*
+export const postDetailsLoader = async ({ params }) => {
   const res = await axios.get(`${DOMAIN}/api/posts/${params.id}`);
   return res.data;
 };
+*/
 
 export default PostDetailsPage;
